@@ -19,7 +19,7 @@
     {
       "name": "bass",
       "kind": "bass",
-      "style": "funk",
+      "style": "hold",
       "out": "page",
       "channel": 2
     },
@@ -63,8 +63,7 @@
       "feel": 16,
       "parts": {
         "bass": {
-          "style": "funk",
-          "phrases": "soul",
+          "style": "hold",
           "program": 34
         },
         "keys": {
@@ -93,8 +92,7 @@
       "feel": 16,
       "parts": {
         "bass": {
-          "style": "octaves",
-          "phrases": "house",
+          "style": "hold",
           "program": 39
         },
         "keys": {
@@ -123,8 +121,7 @@
       "feel": 8,
       "parts": {
         "bass": {
-          "style": "walk",
-          "phrases": "jazz",
+          "style": "hold",
           "program": 33
         },
         "keys": {
@@ -152,7 +149,7 @@
       "feel": 16,
       "parts": {
         "bass": {
-          "style": "bossa",
+          "style": "hold",
           "program": 33
         },
         "keys": {
@@ -180,9 +177,7 @@
       "feel": 16,
       "parts": {
         "bass": {
-          "style": "rootfive",
-          "density": 0.5,
-          "phrases": "soul,jazz",
+          "style": "hold",
           "program": 36
         },
         "keys": {
@@ -212,9 +207,9 @@
       "feel": 16,
       "parts": {
         "bass": {
-          "style": "pedal",
-          "phrases": "pop",
-          "program": 39
+          "style": "hold",
+          "program": 39,
+          "mute": false
         },
         "keys": {
           "style": "gate",
@@ -225,11 +220,11 @@
         },
         "arp": {
           "style": "random",
-          "mute": true,
+          "mute": false,
           "program": 82
         },
         "pad": {
-          "mute": true,
+          "mute": false,
           "program": 90
         }
       },
@@ -242,8 +237,7 @@
       "tempo": 88,
       "parts": {
         "bass": {
-          "style": "rootfive",
-          "phrases": "lofi",
+          "style": "hold",
           "program": 39
         },
         "keys": {
@@ -270,8 +264,7 @@
       "feel": 16,
       "parts": {
         "bass": {
-          "style": "funk",
-          "phrases": "fusion",
+          "style": "hold",
           "program": 36
         },
         "keys": {
@@ -295,5 +288,5 @@
       "tempo": 108
     }
   ],
-  "startScene": "funk"
+  "startScene": "drive"
 }

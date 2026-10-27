@@ -5,8 +5,7 @@
 // osc: [wave, detune in cents, level]; filter: [cutoff Hz, Q, extra Hz at the attack, its decay s];
 // amp: [attack s, decay s, sustain level, release s]; fm: [ratio, depth × pitch, depth's decay s]
 const PATCHES = {
-  bass: { osc: [["sawtooth", 0, 0.6], ["square", -1200, 0.4]], filter: [600, 4, 1600, 0.16], amp: [0.004, 0.3, 0.55, 0.06], gain: 0.5 },
-  synthbass: { osc: [["sawtooth", 0, 0.7], ["sawtooth", 8, 0.5]], filter: [450, 8, 2800, 0.12], amp: [0.003, 0.2, 0.5, 0.05], gain: 0.42 },
+  bass: { osc: [["sine", 0, 1]], filter: [2000, 0.5, 0, 1], amp: [0.012, 0.4, 0.9, 0.12], gain: 0.6 },   // a plain deep sine
   piano: { osc: [["triangle", 0, 0.75], ["sawtooth", 0, 0.12]], filter: [2400, 1, 2400, 0.8], amp: [0.003, 1.6, 0, 0.25], gain: 0.34 },
   ep: { fm: [1, 1.8, 0.6], osc: [["sine", 0, 1]], filter: [5000, 0.5, 0, 1], amp: [0.004, 2, 0.12, 0.3], gain: 0.34 },
   clav: { osc: [["square", 0, 0.5], ["sawtooth", 0, 0.3]], filter: [1600, 6, 2600, 0.1], amp: [0.002, 0.35, 0, 0.05], gain: 0.24, highpass: 280 },
@@ -22,8 +21,7 @@ const PATCHES = {
 /** The sound for a program change's byte (General MIDI program − 1). */
 export function patchFor(byte) {
   const p = byte + 1;
-  if (p >= 33 && p <= 38) return "bass";
-  if (p === 39 || p === 40) return "synthbass";
+  if (p >= 33 && p <= 40) return "bass";
   if (p <= 4) return "piano";
   if (p === 5 || p === 6) return "ep";
   if (p === 8) return "clav";
