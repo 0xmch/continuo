@@ -46,7 +46,7 @@ async function main() {
   };
   await run(`document.querySelector(".pad").click()`);
   await sleep(500);
-  await check("pad Dm9, funk");
+  await check("pad Dm9");
   await shot("continuo-desktop.png");
   for (const scene of ["jazz", "bossa", "house"]) {
     await run(`document.querySelector('#scenes [data-scene="${scene}"]').click()`);

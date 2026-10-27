@@ -88,6 +88,8 @@ public let styles: [Style] = [
           "a long root and a little answer"),
     Style("pump", .bass,     "9343 8343 9343 8345", "RRRR ORRR RRRR ORRA", gate: 0.45,
           "pumping sixteenths"),
+    Style("hold", .bass,     "9--- ---- ---- ----", "R... .... .... ....", gate: 1.0,
+          "the root held for the bar, moving when the chord does"),
 
     // comp
     Style("pad", .comp,        "9--- ---- ---- ----", gate: 1.0,

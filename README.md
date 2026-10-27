@@ -152,9 +152,11 @@ standing in for the General MIDI sounds each scene asks for. It plays at
 [0xmch.xyz/continuo](https://0xmch.xyz/continuo/).
 
 The band there is ContinuoCore itself, compiled to WebAssembly (`Sources/ContinuoWeb` exports
-it as C functions), so the page plays the same notes as the app. `node web/parity.mjs` checks
+it as C functions), so the page plays the same notes as the app. `node web/parity.mjs
+web/continuo.wasm .build/arm64-apple-macosx/release/continuo examples/general-midi.json` checks
 that: every scene renders the same piano roll from `continuo render --json` and from the module.
-The page uses the built-in styles only; the voicing and phrase banks stay on your machine.
+The page uses the built-in styles only (its bass holds the root, on a sine); the voicing and
+phrase banks stay on your machine.
 
 `web/build.sh` builds `web/continuo.wasm` (13 MB, 3.8 MB compressed). It needs Swift 6.4.1 from
 [swiftly](https://www.swift.org/install/macos/) and its
