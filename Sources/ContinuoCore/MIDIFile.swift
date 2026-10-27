@@ -1,7 +1,12 @@
 // Reading standard MIDI files: every note with its start and length in seconds, following the
 // file's tempo changes, and the first program each channel asks for.
 
+#if os(WASI)
+import FoundationEssentials   // the web build: no ICU, a fraction of the size
+import WASILibc               // log, pow… (Foundation brings them along elsewhere)
+#else
 import Foundation
+#endif
 
 public struct MIDINote {
     public let start: Double, length: Double   // seconds

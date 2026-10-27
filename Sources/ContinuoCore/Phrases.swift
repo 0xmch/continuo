@@ -7,7 +7,12 @@
 // dynamics and contour, and puts each note on the same job in the chord you're holding,
 // as close as it can to where the player had it.
 
+#if os(WASI)
+import FoundationEssentials   // the web build: no ICU, a fraction of the size
+import WASILibc               // log, pow… (Foundation brings them along elsewhere)
+#else
 import Foundation
+#endif
 
 public enum PhraseRole: String, Codable, CaseIterable { case keys, pad, bass, line, drums }
 
@@ -196,13 +201,11 @@ public struct PhraseMiner {
 
     public init() {}
 
-    static let drumNames = try! NSRegularExpression(pattern: "kick|clap|snare|hat|ride|crash|perc|drum|tom|shaker|cymbal|rim|conga|bongo|fill|top", options: .caseInsensitive)
-    static let fxNames = try! NSRegularExpression(pattern: "fx|atmo|noise|riser|sweep|impact|transition|lifter|vocal|vox|rumble|sub ?drop|byp|reverse", options: .caseInsensitive)
-    static let bassNames = try! NSRegularExpression(pattern: "bass|sub|808|reese", options: .caseInsensitive)
+    static let drumNames = try! Regex("kick|clap|snare|hat|ride|crash|perc|drum|tom|shaker|cymbal|rim|conga|bongo|fill|top").ignoresCase()
+    static let fxNames = try! Regex("fx|atmo|noise|riser|sweep|impact|transition|lifter|vocal|vox|rumble|sub ?drop|byp|reverse").ignoresCase()
+    static let bassNames = try! Regex("bass|sub|808|reese").ignoresCase()
 
-    static func matches(_ re: NSRegularExpression, _ s: String) -> Bool {
-        re.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)) != nil
-    }
+    static func matches(_ re: Regex<AnyRegexOutput>, _ s: String) -> Bool { s.contains(re) }
 
     /// The General MIDI drum note for a one-sound drum track, from its name ("Hat Open 1", "Kick").
     static func drumNote(_ name: String) -> Int? {
@@ -476,7 +479,7 @@ extension Engine {
             bars = max(bars, ph[pick].bars)
         }
         bandBars = max(1, bars)
-        onLog("band: \((song as NSString).lastPathComponent) \(playing) take \(order)")
+        onLog("band: \(song.split(separator: "/").last.map(String.init) ?? song) \(playing) take \(order)")
     }
 
     /// A part's own next phrase, when the band's song has none for it: the next of its own

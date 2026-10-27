@@ -144,6 +144,26 @@ ends, mono parts stay mono, and notes stay in range and in the chord's palette. 
 plays the chords 30 ms behind the beat, to hear how the band catches up. `swift test` runs
 every style early, on time and late through slash chords and altered dominants.
 
+## In a browser
+
+`web/` is a page that runs the band in the browser, with nothing to install: chords from pads,
+on-screen keys, the computer keyboard or a MIDI keyboard (Web MIDI), and small Web Audio synths
+standing in for the General MIDI sounds each scene asks for. It plays at
+[0xmch.xyz/continuo](https://0xmch.xyz/continuo/).
+
+The band there is ContinuoCore itself, compiled to WebAssembly (`Sources/ContinuoWeb` exports
+it as C functions), so the page plays the same notes as the app. `node web/parity.mjs` checks
+that: every scene renders the same piano roll from `continuo render --json` and from the module.
+The page uses the built-in styles only; the voicing and phrase banks stay on your machine.
+
+`web/build.sh` builds `web/continuo.wasm` (13 MB, 3.8 MB compressed). It needs Swift 6.4.1 from
+[swiftly](https://www.swift.org/install/macos/) and its
+[Swift SDK for WebAssembly](https://www.swift.org/documentation/articles/wasm-getting-started.html);
+Xcode's Swift can't target WebAssembly. The core builds there on FoundationEssentials, which
+leaves out ICU and saves 40 MB; `Sources/ContinuoCore/Shims.swift` stands in for the few
+Foundation string calls that leaves out. `node web/pagetest.mjs` checks the page in a muted
+headless Chrome.
+
 ## License
 
 MIT
