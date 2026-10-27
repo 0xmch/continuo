@@ -1,7 +1,12 @@
 // The config file: where the chords come from, where the parts go, the parts themselves and
 // the scenes that switch them. Everything but a part's name and kind is optional.
 
+#if os(WASI)
+import FoundationEssentials   // the web build: no ICU, a fraction of the size
+import WASILibc               // log, pow… (Foundation brings them along elsewhere)
+#else
 import Foundation
+#endif
 
 public struct PartSpec: Codable {
     public var name: String?

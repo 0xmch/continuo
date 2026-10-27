@@ -12,7 +12,12 @@
 //     the notes the two chords share: always for retrigger parts (bass, keys), and within
 //     80 ms of the hit for the others, which catches a chord played a little late
 
+#if os(WASI)
+import FoundationEssentials   // the web build: no ICU, a fraction of the size
+import WASILibc               // log, pow… (Foundation brings them along elsewhere)
+#else
 import Foundation
+#endif
 
 public protocol Sink: AnyObject {
     /// One MIDI message for an output, at an absolute time; `part` is -1 for clock messages.
@@ -753,11 +758,25 @@ public final class Engine {
             return s == "true" ? true : s == "false" ? false : s as Any
         }
         guard !values.isEmpty else { throw ConfigError("set needs a value") }
+        #if os(WASI)
+        // no JSONSerialization in FoundationEssentials: the same one-key object, written out
+        func json(_ s: String) -> String {
+            if Int(s) != nil || Double(s) != nil || s == "true" || s == "false" { return s }
+            return "\"" + s.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"") + "\""
+        }
+        let text = "{\"\(key)\":" + (values.count == 1 ? json(values[0]) : "[" + values.map(json).joined(separator: ",") + "]") + "}"
+        let data = Data(text.utf8)
+        #else
         let data = try JSONSerialization.data(withJSONObject: [key: values.count == 1 ? value(values[0]) : values.map(value)])
+        #endif
         let spec: PartSpec
         do { spec = try JSONDecoder().decode(PartSpec.self, from: data) } catch { throw ConfigError("\(key) can't be \(values.joined(separator: " "))") }
-        let back = try JSONSerialization.jsonObject(with: JSONEncoder().encode(spec)) as? [String: Any]
-        guard back?[key] != nil, key != "name", key != "kind" else { throw ConfigError("no setting called \(key)") }
+        #if os(WASI)
+        let known = String(decoding: try JSONEncoder().encode(spec), as: UTF8.self).contains("\"\(key)\":")
+        #else
+        let known = (try JSONSerialization.jsonObject(with: JSONEncoder().encode(spec)) as? [String: Any])?[key] != nil
+        #endif
+        guard known, key != "name", key != "kind" else { throw ConfigError("no setting called \(key)") }
         return spec
     }
 

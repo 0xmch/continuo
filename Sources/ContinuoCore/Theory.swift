@@ -1,7 +1,12 @@
 // Pitch classes, chord qualities with the scales they imply, naming a chord from the notes
 // someone holds, and reading chord symbols ("Dm9", "B♭13", "Cmaj7/E").
 
+#if os(WASI)
+import FoundationEssentials   // the web build: no ICU, a fraction of the size
+import WASILibc               // log, pow… (Foundation brings them along elsewhere)
+#else
 import Foundation
+#endif
 
 public let noteNames = ["C", "D♭", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"]
 

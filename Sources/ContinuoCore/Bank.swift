@@ -4,7 +4,12 @@
 // A keys part then plays the shape that moves best from its last voicing, so its chords sound
 // like a player's instead of a rule's.
 
+#if os(WASI)
+import FoundationEssentials   // the web build: no ICU, a fraction of the size
+import WASILibc               // log, pow… (Foundation brings them along elsewhere)
+#else
 import Foundation
+#endif
 
 public struct VoicingBank: Codable {
     public struct Shape: Codable {

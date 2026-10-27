@@ -1,7 +1,12 @@
 // Rehearsing without sound: a chord progression played into an engine on a simulated clock,
 // everything it sends recorded, then printed bar by bar, checked, and written as a MIDI file.
 
+#if os(WASI)
+import FoundationEssentials   // the web build: no ICU, a fraction of the size
+import WASILibc               // log, pow… (Foundation brings them along elsewhere)
+#else
 import Foundation
+#endif
 
 public final class Recorder: Sink {
     public struct Message {
@@ -149,6 +154,20 @@ extension Rehearsal {
                 notes.append(["p": o.part, "n": Int(m.bytes[1]), "t": r3(o.t - start), "d": r3(m.time - o.t), "v": o.v])
             }
         }
+        #if os(WASI)
+        // no JSONSerialization in FoundationEssentials: the same object through Codable
+        struct PartRow: Encodable { let name: String, kind: String, style: String }
+        struct ChordRow: Encodable { let t: Double, name: String }
+        struct NoteRow: Encodable { let p: Int, n: Int, t: Double, d: Double, v: Int }
+        struct Roll: Encodable { let tempo: Double, bar: Double, length: Double, parts: [PartRow], chords: [ChordRow], notes: [NoteRow] }
+        let roll = Roll(tempo: e.tempo, bar: r3(Double(e.stepsPerBar) * e.stepDuration), length: r3(end - start),
+                        parts: e.parts.map { PartRow(name: $0.name, kind: $0.kind.rawValue, style: $0.style.name) },
+                        chords: chords.map { ChordRow(t: r3(max(0, $0.time - start)), name: $0.chord.description) },
+                        notes: notes.map { NoteRow(p: $0["p"] as! Int, n: $0["n"] as! Int, t: $0["t"] as! Double, d: $0["d"] as! Double, v: $0["v"] as! Int) })
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        return try! encoder.encode(roll)
+        #else
         let object: [String: Any] = [
             "tempo": e.tempo, "bar": r3(Double(e.stepsPerBar) * e.stepDuration), "length": r3(end - start),
             "parts": e.parts.map { ["name": $0.name, "kind": $0.kind.rawValue, "style": $0.style.name] },
@@ -156,6 +175,7 @@ extension Rehearsal {
             "notes": notes,
         ]
         return try! JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+        #endif
     }
 
     /// A type 1 MIDI file: a conductor track with the tempo and the chords as markers, then one
