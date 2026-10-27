@@ -50,10 +50,12 @@ continuo render Dm9 G13 Cmaj9 A7alt --scene bossa --out demo.mid   # rehearse it
 - **One key is enough:** a single bass note, or a root and its fifth, plays as a major chord,
   as on an arranger keyboard.
 - **Chord changes:** a chord is named once its notes have all arrived, 15 ms after the last
-  one. A hit that falls due while a chord is still arriving waits for it, up to 60 ms. A
-  chord that arrives after a hit has started re-voices whatever is still sounding and keeps
-  the notes both chords share. Playing a change a hair before the beat gives a clean change
-  on the beat, as with an arranger keyboard.
+  one. A hit that falls due while a chord is still arriving waits for it, up to 60 ms. A chord
+  that arrives within 80 ms after a hit re-voices that hit at once, keeping the notes both
+  chords share: the player was a hair late. Any other change waits for the next beat, where
+  the notes still sounding move to it, so held notes change on the grid and the in-between
+  chords of a slow roll never sound. Playing a change a hair before the beat gives a clean
+  change on the beat, as with an arranger keyboard.
 - **Scenes** switch styles and settings in one go. A scene starts again from the config, so
   anything changed with `ctl set` lasts until the next scene.
 
