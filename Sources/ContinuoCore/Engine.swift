@@ -8,9 +8,11 @@
 //     note-on (notes coming up never change it: lifting a finger is not a new chord)
 //   - a hit that falls due while a chord is still arriving waits for it (at most 60 ms), so
 //     playing on the beat gives the new chord on the beat, a hair late, never the old one
-//   - a change that comes after a hit has started re-voices the notes still sounding, keeping
-//     the notes the two chords share: always for retrigger parts (bass, keys), and within
-//     80 ms of the hit for the others, which catches a chord played a little late
+//   - a change that comes within 80 ms after a hit re-voices it at once, keeping the notes the
+//     two chords share: that catches a chord played a little late
+//   - any other change waits for the next beat, where the notes still sounding in retrigger
+//     parts (bass, keys) move to the new chord, unless the part has a hit of its own there: so
+//     held notes change on the grid, and the in-between chords of a slow roll never sound
 
 #if os(WASI)
 import FoundationEssentials   // the web build: no ICU, a fraction of the size
@@ -115,6 +117,7 @@ enum Action {
     case phrase(part: Int, phrase: Int, note: Int, due: Double)
     case off(key: Int, token: Int, part: Int)
     case raw(bytes: [UInt8], output: Int)
+    case revoice   // the next beat after a chord change: move the notes still sounding to it
 }
 
 struct EventHeap {
@@ -123,6 +126,10 @@ struct EventHeap {
     private var seq = 0
 
     var peekTime: Double? { items.first?.time }
+    /// Whether part `i` has a hit due between `from` and `to`.
+    func hasHit(_ i: Int, from: Double, to: Double) -> Bool {
+        items.contains { if case let .hit(part, _, _, _) = $0.action { return part == i && $0.time >= from && $0.time < to }; return false }
+    }
 
     mutating func push(_ time: Double, _ action: Action) {
         seq += 1
@@ -201,6 +208,7 @@ public final class Engine {
     /// Every part plays this far behind the beat grid, together: time to read a chord played on the beat.
     public private(set) var latency = 0.025
     let catchWindow = 0.08, maxWait = 0.06, margin = 0.008
+    var revoicePending = false   // a .revoice is waiting in the heap
 
     var held: [Int: Set<Int>] = [:]
     public private(set) var chord: Chord? = nil
@@ -387,6 +395,9 @@ public final class Engine {
             endNote(key, token, at: e.time, part: i)
         case let .raw(bytes, output):
             sink.send(bytes, output: output, at: e.time, part: -1)
+        case .revoice:
+            revoicePending = false
+            for i in parts.indices where !heap.hasHit(i, from: e.time - margin, to: e.time + catchWindow) { rerender(i, at: e.time) }
         }
     }
 
@@ -480,6 +491,7 @@ public final class Engine {
     /// Re-voices what a part is still holding for a chord that changed under it.
     func rerender(_ i: Int, at t: Double) {
         let p = parts[i]
+        if let on = p.last?.on, on > t { return rerender(i, at: on) }   // never before the hit itself
         if p.phrases != nil && phraseBank != nil { rephrase(i, at: t); return }
         guard !p.mute, var last = p.last, let chord, last.off > t + 0.02,
               p.retrigger || t - last.on < catchWindow else { return }
@@ -638,7 +650,19 @@ public final class Engine {
         }
         chordLog.append((c, nextStep))
         chordTime = t
-        for i in parts.indices { rerender(i, at: t) }
+        for i in parts.indices { if let last = parts[i].last, t - last.on < catchWindow { rerender(i, at: t) } }   // a little late
+        if !revoicePending {
+            revoicePending = true
+            heap.push(nextBeat(after: t), .revoice)
+        }
+    }
+
+    /// The next beat (a quarter of the bar's steps, the band's latency included) after `t`.
+    func nextBeat(after t: Double) -> Double {
+        let beat = max(1, stepsPerBar / 4)
+        var k = max(nextStep - beat, anchorStep + Int(((t - latency - anchorTime) / stepDuration).rounded(.down)))
+        while k % beat != 0 || stepTime(k) + latency <= t { k += 1 }
+        return stepTime(k) + latency
     }
 
     /// The chord the player will likely change to next, once the one they're holding has lasted as
@@ -675,6 +699,7 @@ public final class Engine {
         let was = running
         running = false
         heap.removeAll()
+        revoicePending = false
         for k in active.keys.sorted() { sendOff(k, at: t, part: active[k]!.part) }
         active.removeAll()
         for p in parts { p.last = nil; p.sounding = [] }
